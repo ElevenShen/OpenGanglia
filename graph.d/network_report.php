@@ -28,9 +28,21 @@ function graph_network_report ( &$rrdtool_graph ) {
     $rrdtool_graph['vertical-label'] = 'Bytes/sec';
     $rrdtool_graph['extras']         = '--rigid --base 1024';
 
+    /*if ($_GET['r'] != 'hour' and !$hostname) {
+            if ($_GET['c'] == 'Database') {
+                $rrdtool_graph['upper-limit'] = '150000000';
+            } elseif ($_GET['c'] == 'DatabaseUser') {
+                $rrdtool_graph['upper-limit'] = '50000000';
+            } elseif ($_GET['me'] == 'unspecified') {
+                $rrdtool_graph['upper-limit'] = '3500000000';
+            }
+    }*/
+
     $series = "DEF:'bytes_in'='${rrd_dir}/bytes_in.rrd':'sum':AVERAGE "
        ."DEF:'bytes_out'='${rrd_dir}/bytes_out.rrd':'sum':AVERAGE "
-       ."LINE2:'bytes_in'#$mem_cached_color:'In' "
+       #."AREA:'bytes_in'#00CF00:'In' "
+       ."AREA:'bytes_in'#$mem_cached_color:'In' "
+       #."LINE2:'bytes_in'#$mem_cached_color:'In' "
        ."LINE2:'bytes_out'#$mem_used_color:'Out' ";
 
     $rrdtool_graph['series'] = $series;

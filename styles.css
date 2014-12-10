@@ -184,3 +184,17 @@ td strong
       color: rgb(100,100,100);
 }
 
+.sipt {color:#D0D0D0}
+
+div.img
+{
+    background: none repeat scroll 0 0 #F7F7F7;
+    display: table-cell;
+    height: 176px;
+    line-height: 176px;
+    min-height: 176px;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    width: 397px;
+}

@@ -15,6 +15,36 @@ function toggleLayer( whichLayer )
     vis.display = (elem.offsetWidth!=0&&elem.offsetHeight!=0)?'block':'none';
   vis.display = (vis.display==''||vis.display=='block')?'none':'block';
 }
+
+function GetCookie (name)
+{
+   var arg = name + "=";
+   var alen = arg.length;
+   var clen = document.cookie.length;
+   var i = 0;
+   while (i < clen)
+   {
+       var j = i + alen;
+       if (document.cookie.substring(i, j) == arg)
+       return getCookieVal (j);
+       i = document.cookie.indexOf(" ", i) + 1;
+       if (i == 0) break;
+   }
+ return null;
+}
+
+function getCookieVal (offset)
+{
+   var endstr = document.cookie.indexOf (";", offset);
+   if (endstr == -1)
+     endstr = document.cookie.length;
+     return unescape(document.cookie.substring(offset, endstr));
+   }
+function SetCookie (name, value)
+   {
+     document.cookie = name + "=" + escape (value)
+   }
+
 --></SCRIPT>
 <TABLE BORDER="0" WIDTH="100%">
 <TR>
@@ -41,7 +71,7 @@ function toggleLayer( whichLayer )
 </TR>
 <!-- END BLOCK : string_metric_info -->
 
-<TR><TD>&nbsp;</TD></TR>
+<!--- <TR><TD>&nbsp;</TD></TR> -->
 
 <TR>
   <TD COLSPAN=2 CLASS=title>Constant Metrics</TD>
@@ -52,6 +82,19 @@ function toggleLayer( whichLayer )
  <TD CLASS=footer WIDTH=30%>{name}</TD><TD>{value}</TD>
 </TR>
 <!-- END BLOCK : const_metric_info -->
+
+<!--- <TR><TD>&nbsp;</TD></TR> -->
+
+<TR>
+  <TD COLSPAN=2 CLASS=title>Run Metrics</TD>
+</TR>
+<!-- START BLOCK : run_metric_info -->
+<TR>
+ <TD CLASS=footer WIDTH=30%>{name}</TD><TD>{value}</TD>
+</TR>
+<!-- END BLOCK : run_metric_info -->
+
+
 </TABLE>
 
  <HR>
@@ -60,32 +103,21 @@ function toggleLayer( whichLayer )
 </TD>
 
 <TD ALIGN="CENTER" VALIGN="TOP" WIDTH="395">
-<A HREF="./graph.php?g=load_report&z=large&c={cluster_url}&{graphargs}">
-<IMG BORDER=0 ALT="{cluster_url} LOAD"
-   SRC="./graph.php?g=load_report&z=medium&c={cluster_url}&{graphargs}">
-</A>
-<A HREF="./graph.php?g=mem_report&z=large&c={cluster_url}&{graphargs}">
-<IMG BORDER=0 ALT="{cluster_url} MEM"
-   SRC="./graph.php?g=mem_report&z=medium&c={cluster_url}&{graphargs}">
-</A>
-<A HREF="./graph.php?g=cpu_report&z=large&c={cluster_url}&{graphargs}">
-<IMG BORDER=0 ALT="{cluster_url} CPU"
-   SRC="./graph.php?g=cpu_report&z=medium&c={cluster_url}&{graphargs}">
-</A>
-<A HREF="./graph.php?g=network_report&z=large&c={cluster_url}&{graphargs}">
+<A HREF="./tools/?g=network_report&z=large&c={cluster_url}&{graphargs}&m=graph_view&thickbox=1&TB_iframe=ture&width=980&height=600'" class='thickbox'>
 <IMG BORDER=0 ALT="{cluster_url} NETWORK"
    SRC="./graph.php?g=network_report&z=medium&c={cluster_url}&{graphargs}">
 </A>
-<A HREF="./graph.php?g=packet_report&z=large&c={cluster_url}&{graphargs}">
-<IMG BORDER=0 ALT="{cluster_url} PACKETS"
-   SRC="./graph.php?g=packet_report&z=medium&c={cluster_url}&{graphargs}">
+<A HREF="./tools/?g=cpu_report&z=large&c={cluster_url}&{graphargs}&m=graph_view&thickbox=1&TB_iframe=ture&width=980&height=600'" class='thickbox'>
+<IMG BORDER=0 ALT="{cluster_url} NETWORK PACKET"
+   SRC="./graph.php?g=cpu_report&z=medium&c={cluster_url}&{graphargs}">
 </A>
-
+<A HREF="./tools/?g=mem_report&z=large&c={cluster_url}&{graphargs}&m=graph_view&thickbox=1&TB_iframe=ture&width=980&height=600'" class='thickbox'>
+<IMG BORDER=0 ALT="{cluster_url} MEM"
+   SRC="./graph.php?g=mem_report&z=medium&c={cluster_url}&{graphargs}">
+</A>
 </TD>
 </TR>
 </TABLE>
-<BR>
-<BR>
 <TABLE BORDER="0" WIDTH="100%">
 <TR>
   <TD CLASS=title>
@@ -97,6 +129,12 @@ function toggleLayer( whichLayer )
     Columns&nbsp;&nbsp;{metric_cols_menu}
   </FONT>
 <!-- END BLOCK : columns_dropdown -->
+&nbsp
+<!-- START BLOCK : graphview_dropdown -->
+  <FONT SIZE="-1">
+    GraphView&nbsp;{metric_graph_menu}
+  </FONT>
+<!-- END BLOCK : graphview_dropdown -->
   </TD>
 </TR>
 </TABLE>
@@ -119,9 +157,9 @@ function toggleLayer( whichLayer )
 <DIV ID="{group}">
 <TABLE><TR>
 <!-- START BLOCK : vol_metric_info -->
-<TD><A HREF="./graph.php?{graphargs}&amp;z=large">
-<IMG BORDER=0 ALT="{alt}" SRC="./graph.php?{graphargs}" TITLE="{desc}">
-</A></TD>
+<TD>
+{graphargs}
+</TD>
 {new_row}
 <!-- END BLOCK : vol_metric_info -->
 </TR>

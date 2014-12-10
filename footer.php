@@ -19,6 +19,31 @@ elseif ($version["gmond"]) {
 }
 
 $tpl->assign("parsetime", sprintf("%.4f", $parsetime) . "s");
+?>
 
+<script type="text/javascript">
+
+var settime=3600;
+var i;
+var showthis;
+
+for(i=1;i<=settime;i++)
+{
+    setTimeout("update("+i+")",i*1000);
+}
+
+function update(num)
+{
+    if(num==settime) {
+        location.reload();
+    } else {
+        showthis=settime-num;
+        document.all.agree.value=""+showthis+"秒后刷新";
+    }
+}
+
+</script>
+
+<?php
 $tpl->printToScreen();
 ?>

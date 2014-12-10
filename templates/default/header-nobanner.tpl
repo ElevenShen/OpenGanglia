@@ -4,7 +4,7 @@
 <TITLE>Ganglia Cluster Toolkit:: {page_title}</TITLE>
 <META http-equiv="Content-type" content="text/html; charset=utf-8">
 <META http-equiv="refresh" content="300">
-<LINK rel="stylesheet" href="./styles.css" type="text/css">
+<LINK rel="stylesheet" href="./styles.css?v=1" type="text/css">
 </HEAD>
 <BODY BGCOLOR="#FFFFFF">
 

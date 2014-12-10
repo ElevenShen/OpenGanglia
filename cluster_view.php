@@ -1,4 +1,5 @@
 <?php
+
 /* $Id: cluster_view.php 1710 2008-08-21 16:44:54Z bernardli $ */
 $tpl = new TemplatePower( template("cluster_view.tpl") );
 $tpl->assignInclude("extra", template("cluster_extra.tpl"));
@@ -45,6 +46,7 @@ $cluster_url=rawurlencode($clustername);
 
 
 $tpl->assign("cluster", $clustername);
+$tpl->assign("cluster_contact", $ex_grid[$clustername]["contact"]);
 #
 # Summary graphs
 #
@@ -151,6 +153,7 @@ if (!is_array($hosts_up) or !$showhosts) {
 
 switch ($sort)
 {
+/*
    case "descending":
       arsort($sorted_hosts);
       break;
@@ -159,6 +162,17 @@ switch ($sort)
       break;
    default:
    case "ascending":
+      asort($sorted_hosts);
+      break;
+*/
+   case "DESC":
+      arsort($sorted_hosts);
+      break;
+   case "Name":
+      uksort($sorted_hosts, "strnatcmp");
+      break;
+   default:
+   case "ASC":
       asort($sorted_hosts);
       break;
 }
@@ -185,6 +199,7 @@ foreach ( $sorted_hosts as $host => $value )
 
       if (isset($hosts_down[$host]) and $hosts_down[$host])
          {
+            if ($cluster['LOCALTIME'] - $hosts_down[$host]['REPORTED'] > 259200) continue;
             $last_heartbeat = $cluster['LOCALTIME'] - $hosts_down[$host]['REPORTED'];
             $age = $last_heartbeat > 3600 ? uptime($last_heartbeat) : "${last_heartbeat}s";
 
@@ -222,6 +237,12 @@ foreach ( $sorted_hosts as $host => $value )
                   $graphargs .= "z=$size&amp;c=$cluster_url&amp;h=$host_url"
                      ."&amp;l=$load_color&amp;v=$val[VAL]&amp;x=$max&amp;n=$min"
                      ."&amp;r=$range&amp;su=1&amp;st=$cluster[LOCALTIME]";
+
+	          if ($metrics[$host][$metricname]['UNITS']) {
+                     $encodeUnits = rawurlencode($metrics[$host][$metricname]['UNITS']);
+                     $graphargs .= "&vl=$encodeUnits";
+                  }
+
                }
          }
 
@@ -233,9 +254,30 @@ foreach ( $sorted_hosts as $host => $value )
          }
       else
          {
-            $cell="<td><a href=$host_link>".
-               "<img src=\"./graph.php?$graphargs\" ".
-               "alt=\"$host\" border=0></a></td>";
+	    $n_dns = "";
+	    $a_ip = ip2net($host_group[$host]['IP']);
+	    $n_ip = $a_ip['nip'];
+	    $w_ip = $a_ip['wip'];
+	    if ($zone_list[$n_ip]) {
+	        $n_dns = "<a href='./tools/?q={$zone_list[$n_ip][0]}&m=dns&TB_iframe=ture&width=980&height=600' class='thickbox'>".$zone_list[$n_ip][0].'</a>';
+                if ($zone_list[$n_ip][1]) {
+	            $n_dns .= "<br><a href='./tools/?q={$zone_list[$n_ip][1]}&m=dns&TB_iframe=ture&width=980&height=600' class='thickbox'>".$zone_list[$n_ip][1].'</a>';
+                }
+	    }
+	    if ($zone_list[$w_ip]) {
+		$n_dns .= "<br><a href='./tools/?q={$zone_list[$w_ip][0]}&m=dns&TB_iframe=ture&width=980&height=600' class='thickbox'>".$zone_list[$w_ip][0].'</a>';
+	    }
+	    if (!$n_dns) {
+                $n_dns = "<br><a class='thickbox' href='./tools/?c=$clustername&h=$host&g=$metricname&m=graph_view&thickbox=1&TB_iframe=ture&width=980&height=600'>{$host_group[$host]['IP']}</a>";
+	    }
+
+            $cell="<td align=center valign=bottom>$n_dns<br><a href=$host_link>".
+               "<div class='img'><img src=\"./graph.php?$graphargs\" ".
+               "alt=\"$host\" border=0></div></a></td>";
+
+	    if ($_GET['output_list']) {
+		 $output_list .= "$w_ip $n_ip {$zone_list[$n_ip][0]} {$zone_list[$n_ip][1]} {$zone_list[$n_ip][2]}<br>";
+	    }
          }
 
       $tpl->assign("metric_image", $cell);
@@ -244,5 +286,9 @@ foreach ( $sorted_hosts as $host => $value )
    }
 
 $tpl->printToScreen();
+
+if ($_GET['output_list']) {
+	echo "<br>$output_list<br>";
+}
 ?>
 

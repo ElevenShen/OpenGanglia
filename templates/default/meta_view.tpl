@@ -1,45 +1,31 @@
 <TABLE BORDER="0" WIDTH="100%">
 
 <!-- START BLOCK : source_info -->
-<TR>
-  <TD CLASS={class} COLSPAN=3>
-   <A HREF="{url}"><STRONG>{name}</STRONG></A> {alt_view}
-  </TD>
-</TR>
+{tr}
 
-<TR>
  <!-- START BLOCK : public -->
- <TD ALIGN="LEFT" VALIGN="TOP">
+ <TD>
 <table cellspacing=1 cellpadding=1 width="100%" border=0>
- <tr><td>CPUs Total:</td><td align=left><B>{cpu_num}</B></td></tr>
- <tr><td width="80%">Hosts up:</td><td align=left><B>{num_nodes}</B></td></tr>
- <tr><td>Hosts down:</td><td align=left><B>{num_dead_nodes}</B></td></tr>
- <tr><td>&nbsp;</td></tr>
- <tr><td class=footer colspan=2>{cluster_load}</td></tr>
- <tr><td class=footer colspan=2>{localtime}</td></tr>
+<tbody align=center>
+ <tr><td colspan=4><B><A HREF="{url}"><STRONG>{name}</STRONG></A> {alt_view}</B></td></tr>
+ <tr><td>Hosts up: <B>{num_nodes} </B>&nbsp Hosts down: <B>{num_dead_nodes}</B> {image_zoom}</td></tr>
+ <tr><td colspan=4>
+ <A HREF="{url}">
+   <!-- <IMG SRC="./graph.php?{graph_url}&g={graph_report}&z=medium&r={range}"
+       ALT="{name} {graph_report}" BORDER="0"> -->
+   <div class='img'><IMG SRC="{graph_cache_url}" ALT="{name} {graph_report}" BORDER="0"></div>
+
+ </A>
+ </td></tr>
+</tbody>
 </table>
-  </TD>
-
-  <TD VALIGN=top align=right>
-  <A HREF="{url}">
-   <IMG SRC="./graph.php?{graph_url}&g=load_report&z=medium&r={range}"
-       ALT="{name} Load" BORDER="0">
-  </A>
-  </TD>
-
-  <TD VALIGN=top>
-  <A HREF="{url}" VALIGN=top>
-   <IMG SRC="./graph.php?{graph_url}&g=mem_report&z=medium&r={range}"
-       ALT="{name} MEM" BORDER="0">
-  </A>
-   </TD>
 <!-- END BLOCK : public -->
 
 <!-- START BLOCK : private -->
-  <TD ALIGN="LEFT" VALIGN="TOP">
+  <TD VALIGN="TOP">
 <table cellspacing=1 cellpadding=1 width=100% border=0>
  <tr><td>CPUs Total:</td><td align=left><B>{cpu_num}</B></td></tr>
- <tr><td width=80%>Nodes:</td><td align=left><B>{num_nodes}</B></td></tr>
+ <tr><td>Nodes:</td><td align=left><B>{num_nodes}</B></td></tr>
  <tr><td>&nbsp;</td></tr>
  <tr><td class=footer colspan=2>{localtime}</td></tr>
 </table>
@@ -47,10 +33,21 @@
    <TD COLSPAN=2 align=center>This is a private cluster.</TD>
 <!-- END BLOCK : private -->
 
-</TR>
+{etr}
 <!-- END BLOCK : source_info -->
 </TABLE>
 
+<!-- START BLOCK : profile_group_none -->
+<br>
+<table width=95%>
+<tr><td align=center>{showall} {hideall}已隐藏的Cluster:</td></tr>
+<tr><td align=center>
+{group_none}
+</td></tr>
+</table>
+<!-- END BLOCK : profile_group_none -->
+
+<!---
 <!-- START BLOCK : show_snapshot -->
 <TABLE BORDER="0" WIDTH="100%">
 <TR>
@@ -69,4 +66,5 @@
 </TABLE>
 </CENTER>
 <!-- END BLOCK : show_snapshot -->
+--->
 

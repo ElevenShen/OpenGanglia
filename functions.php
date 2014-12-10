@@ -461,4 +461,24 @@ function strip_domainname( $hostname ) {
     }
 }
 
+function get_image_cache($img_filename)
+{
+        global $rrds, $clustername;
+
+	$source = $clustername;
+
+        if ($source == "unspecified") {
+                $rrd_dir = "$rrds/__SummaryInfo__";
+                $title = " Grid Network last hour";
+
+        } else {
+                $rrd_dir = "$rrds/$source/__SummaryInfo__";
+                $title = " $source Cluster Network last hour";
+
+        }
+
+        passthru("/usr/bin/rrdtool graph - --color 'BACK#E0E0E0' --color 'SHADEA#FFFFFF' --color 'SHADEB#FFFFFF' --start '-3600' --end N --width 300 --height 103 --title ' $title' --lower-limit 0 --vertical-label 'Bytes/sec' --rigid --base 1024 DEF:'bytes_in'='$rrd_dir/bytes_in.rrd':'sum':AVERAGE DEF:'bytes_out'='$rrd_dir/bytes_out.rrd':'sum':AVERAGE AREA:'bytes_in'#33cc33:'In' LINE2:'bytes_out'#5555cc:'Out' | tee '$img_filename'");
+
+}
+
 ?>

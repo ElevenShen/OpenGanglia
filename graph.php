@@ -1,8 +1,18 @@
 <?php
+
 /* $Id: graph.php 2183 2010-01-07 16:09:55Z d_pocock $ */
 include_once "./eval_config.php";
 include_once "./get_context.php";
 include_once "./functions.php";
+
+
+if ($_GET["ccache"] == 1) {
+	if ($clustername == "")  $clustername = "unspecified";
+
+	$img_filename = $img_cache_dir.$clustername."_".$graph_report.".png";
+	get_image_cache($img_filename);
+	exit;
+}
 
 # RFM - Added all the isset() tests to eliminate "undefined index"
 # messages in ssl_error_log.
@@ -30,6 +40,11 @@ $load_color = isset($_GET["l"]) && is_valid_hex_color( rawurldecode( $_GET[ 'l' 
 $summary    = isset( $_GET["su"] )    ? 1 : 0;
 $debug      = isset( $_GET['debug'] ) ? clean_number ( sanitize( $_GET["debug"] ) ) : 0;
 $command    = '';
+
+if ($_GET["mode"] == "zoom") {
+	$start	    = isset($_GET["start"]) ? clean_number ( sanitize ($_GET["start"] ) ): NULL;
+	$end = isset($_GET["end"]) ? clean_number ( sanitize ($_GET["end"] ) ): NULL;
+}
 
 # Assumes we have a $start variable (set in get_context.php).
 # $graph_sizes and $graph_sizes_keys defined in conf.php.  Add custom sizes there.
@@ -185,6 +200,8 @@ if (!array_key_exists('series', $rrdtool_graph) || !strlen($rrdtool_graph['serie
 }
 
 $command = RRDTOOL . " graph - $rrd_options ";
+$command .= "--color 'BACK#E0E0E0' --color 'SHADEA#FFFFFF' --color 'SHADEB#FFFFFF'";
+#$command .= "--color 'BACK#E0E0E0' --color 'SHADEA#FFFFFF' --color 'SHADEB#FFFFFF' --watermark '$clustername'";
 
 // The order of the other arguments isn't important, except for the
 // 'extras' and 'series' values.  These two require special handling.

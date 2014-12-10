@@ -1,4 +1,5 @@
 <?php
+
 /* $Id: meta_view.php 1710 2008-08-21 16:44:54Z bernardli $ */
 $tpl = new TemplatePower( template("meta_view.tpl") );
 $tpl->prepare();
@@ -27,6 +28,12 @@ if ( $context == "control" ) {
 
 foreach( $source_names as $c)
    {
+
+      if (!$none_username and !$super_userlist[$username] and is_array($userlist[$c])) {
+              if ($userlist[$c] == "" or !in_array($username, $userlist[$c])) continue;
+      }
+      if ($profile_group and !in_array($c, $profile_group)) continue;
+
       $cpucount = $metrics[$c]["cpu_num"]['SUM'];
       if (!$cpucount) $cpucount=1;
       $load_one = $metrics[$c]["load_one"]['SUM'];
@@ -37,10 +44,12 @@ foreach( $source_names as $c)
       $total_load += $value;   
    }
 
-if ($sort == "descending") {
+if ($sort == "DESC") {
+#if ($sort == "descending") {
       $sorted_sources[$self] = 999999999;
       arsort($sorted_sources);
-} else if ($sort == "by name") { # SORT HACK to keep $self first; see below:
+} else if ($sort == "Name") { # SORT HACK to keep $self first; see below:
+#} else if ($sort == "by name") { # SORT HACK to keep $self first; see below:
       $sorted_sources["AAAAA.$self"] = $sorted_sources[$self];
       unset($sorted_sources[$self]);
       ksort($sorted_sources);
@@ -70,6 +79,7 @@ foreach ( $sorted_sources as $source => $val )
       }
       $m = $metrics[$source];
       $sourceurl = rawurlencode($source);
+      #if ($source == $self and !$none_username and !$super_userlist[$username]) continue;
       if (isset($grid[$source]['GRID']) and $grid[$source]['GRID'])
          {
             $localtime = $grid[$source]['LOCALTIME'];
@@ -99,9 +109,14 @@ foreach ( $sorted_sources as $source => $val )
             # Set cluster context.
             $name = $source;
             $localtime = $grid[$source]['LOCALTIME'];
-            $graph_url = "c=$sourceurl&amp;$get_metric_string&amp;st=$localtime";
-            $url = "./?c=$sourceurl&amp;$get_metric_string";
-            $alt_url = "<a href=\"./?p=2&amp;$graph_url\">(physical view)</a>";
+	    if ($sourceurl == $self) {
+		    $graph_url = "c=&amp;$get_metric_string&amp;st=$localtime";
+                    $url = "./?$get_metric_string";
+	    } else {
+		    $graph_url = "c=$sourceurl&amp;$get_metric_string&amp;st=$localtime";
+	            $url = "./?c=$sourceurl&amp;$get_metric_string";
+	    }
+            $alt_url = "<a href=\"./?p=2&amp;$graph_url&TB_iframe=ture&width=980&height=600\" class='thickbox'>(physical view)</a>";
             $class = "cluster";
          }
 
@@ -111,7 +126,21 @@ foreach ( $sorted_sources as $source => $val )
       $cluster_load1 = sprintf("%.0f", ((double) $m["load_one"]['SUM'] / $cpu_num) * 100);
       $cluster_load = "$cluster_load15%, $cluster_load5%, $cluster_load1%";
 
+      if (0 and $graph_report == "network_report" and $range == "hour") {
+		$img_filename = $img_cache_dir.$source."_".$graph_report.".png";
+		$img_cache_time = time() - @filemtime($img_filename);
+		if ($img_cache_time > $img_cache_timeout) {
+                        $graph_cache_url = "./graph.php?$graph_url&g=$graph_report&z=medium&r=$range&ccache=1";
+		} else {
+			$graph_cache_url = $img_filename;
+		}
+	} else {
+		$graph_cache_url = "./graph.php?$graph_url&g=$graph_report&z=medium&r=$range";
+        }
+
+      $i++;
       $tpl->newBlock ("source_info");
+      if ($hostcols < 2 or $i % $hostcols == 1) $tpl->assign("tr", "<tr>" );
       $tpl->assign("name", $name );
       $tpl->assign("cpu_num", $m["cpu_num"]['SUM']);
       $tpl->assign("url", $url);
@@ -123,9 +152,9 @@ foreach ( $sorted_sources as $source => $val )
       # users are skittish about publishing the load info.
       if (!isset($private[$source]) or !$private[$source]) 
          {
-            $tpl->assign("alt_view", "<FONT SIZE=\"-2\">$alt_url</FONT>");
             # Each block has a different namespace, so we need to redefine variables.
             $tpl->newBlock("public");
+            $tpl->assign("alt_view", "<FONT SIZE=\"-2\">$alt_url</FONT>");
             if ($localtime)
                $tpl->assign("localtime",  "<font size=-1>Localtime:</font><br>&nbsp;&nbsp;" 
                   . date("Y-m-d H:i", $localtime) );
@@ -138,7 +167,21 @@ foreach ( $sorted_sources as $source => $val )
             $tpl->assign("range", $range);
             $tpl->assign("name", $name );
             $tpl->assign("url", $url);
-            $tpl->assign("graph_url", $graph_url);
+            $tpl->assign("graph_cache_url", $graph_cache_url);
+	    $tpl->assign("graph_report", $metricname);
+            if ($sourceurl == $self) {
+                    $image_zoom = "  <a href='./tools/?c=&g=$graph_report&m=graph_view&thickbox=1&TB_iframe=ture&width=980&height=600' target='_blank' title='查看大图' class='thickbox'>
+                        <img src='./templates/default/images/graph_zoom.gif' border='0'></a>";
+                    $image_zoom .= "&nbsp<a href='./?$_SERVER[QUERY_STRING]&profile=hideall&url=".rawurlencode($_SERVER["QUERY_STRING"]) . "' title='隐藏所有Cluster' onclick=\"{if(confirm('确定要隐藏所有Cluster吗?')){return true;}return false;}\">
+		<img src='./templates/default/images/cross.png' border='0'></a>";
+                    $image_zoom .= "&nbsp<a href='./?$_SERVER[QUERY_STRING]&profile=showall&url=".rawurlencode($_SERVER["QUERY_STRING"]) . "' title='显示所有Cluster' onclick=\"{if(confirm('确定要显示所有Cluster吗?')){return true;}return false;}\"><img src='./templates/default/images/tick.png' border='0'></a>";
+            } else {
+            $image_zoom = "  <a href='./tools/?c=$sourceurl&g=$graph_report&m=graph_view&thickbox=1&TB_iframe=ture&width=980&height=600' target='_blank' title='查看大图' class='thickbox'>
+                        <img src='./templates/default/images/graph_zoom.gif' border='0'></a> ";
+                $image_zoom .= "<a href='./?$_SERVER[QUERY_STRING]&profile=hide&profile_group=$name&url=".rawurlencode($_SERVER["QUERY_STRING"]) . "' title='隐藏{$name}' onclick=\"{if(confirm('确定要隐藏{$name}吗?')){return true;}return false;}\">
+		<img src='./templates/default/images/cross.png' border='0'></a>";
+            }
+	    $tpl->assign("image_zoom", $image_zoom);
 	    if(isset($base64img)) {
                 $tpl->assign("base64img", $base64img);
 	    }
@@ -151,6 +194,7 @@ foreach ( $sorted_sources as $source => $val )
             if ($localtime)
                $tpl->assign("localtime", "<font size=-1>Localtime:</font><br>&nbsp;&nbsp;"
                   . date("Y-m-d H:i",$localtime));
+	    if ($hostcols < 2 or $i % $hostcols == 0) $tpl->assign("ntr", '</tr>' );
          }
    }
 
@@ -212,6 +256,20 @@ if ($show_meta_snapshot=="yes") {
          $tpl->assign("images", $snapimgs);
          $i += $cols;
       }
+}
+
+if ($profile_group_none) {
+        sort($profile_group_none);
+        foreach ($profile_group_none AS $v) {
+                $group_none .= " <a href='./?$_SERVER[QUERY_STRING]&profile=show&profile_group=$v&url=". rawurlencode($_SERVER["QUERY_STRING"]) . "' title='显示{$v}'>$v</a> ";
+        }
+        $tpl->newBlock("profile_group_none");
+	$tpl->assign("showall", "<a href='./?$_SERVER[QUERY_STRING]&profile=showall&url=".rawurlencode($_SERVER["QUERY_STRING"]) . "' title='显示所有Cluster' onclick=\"{if(confirm('确定要显示所有Cluster吗?')){return true;}return false;}\">
+	<img src='./templates/default/images/tick.png' border='0'></a>");
+	$tpl->assign("hideall", "<a href='./?$_SERVER[QUERY_STRING]&profile=hideall&url=".rawurlencode($_SERVER["QUERY_STRING"]) . "' title='隐藏所有Cluster' onclick=\"{if(confirm('确定要隐藏所有Cluster吗?')){return true;}return false;}\">
+	<img src='./templates/default/images/cross.png' border='0'></a>");
+
+        $tpl->assign("group_none", $group_none);
 }
 
 $tpl->printToScreen();

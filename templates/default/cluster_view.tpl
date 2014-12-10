@@ -1,7 +1,9 @@
+<CENTER>
+
 <TABLE BORDER="0" CELLSPACING=5 WIDTH="100%">
 <TR>
   <TD CLASS=title COLSPAN="2">
-  <FONT SIZE="+1">Overview of {cluster}</FONT>
+  <FONT SIZE="+1">Overview of {cluster}, Contacts: {cluster_contact}</FONT>
   </TD>
 </TR>
 
@@ -20,19 +22,19 @@
 </TD>
 
 <TD ROWSPAN=2 ALIGN="CENTER" VALIGN=top>
-<A HREF="./graph.php?g=load_report&amp;z=large&amp;{graph_args}">
+<A HREF="./tools/?g=load_report&amp;m=graph_view&amp;c={cluster}&thickbox=1&TB_iframe=ture&width=980&height=600'" class='thickbox' >
 <IMG BORDER=0 ALT="{cluster} LOAD"
    SRC="./graph.php?g=load_report&amp;z=medium&amp;{graph_args}">
 </A>
-<A HREF="./graph.php?g=cpu_report&amp;z=large&amp;{graph_args}">
+<A HREF="./tools/?g=cpu_report&amp;m=graph_view&amp;c={cluster}&thickbox=1&TB_iframe=ture&width=980&height=600'" class='thickbox' >
 <IMG BORDER=0 ALT="{cluster} CPU"
    SRC="./graph.php?g=cpu_report&amp;z=medium&amp;{graph_args}">
 </A>
-<A HREF="./graph.php?g=mem_report&amp;z=large&amp;{graph_args}">
+<A HREF="./tools/?g=mem_report&amp;m=graph_view&amp;c={cluster}&thickbox=1&TB_iframe=ture&width=980&height=600'" class='thickbox' >
 <IMG BORDER=0 ALT="{cluster} MEM"
    SRC="./graph.php?g=mem_report&amp;z=medium&amp;{graph_args}">
 </A>
-<A HREF="./graph.php?g=network_report&amp;z=large&amp;{graph_args}">
+<A HREF="./tools/?g=network_report&amp;m=graph_view&amp;c={cluster}&thickbox=1&TB_iframe=ture&width=980&height=600'" class='thickbox'>
 <IMG BORDER=0 ALT="{cluster} NETWORK"
     SRC="./graph.php?g=network_report&amp;z=medium&amp;{graph_args}">
 </A>
@@ -50,7 +52,6 @@
  </TD>
 </TR>
 </TABLE>
-
 
 <TABLE BORDER="0" WIDTH="100%">
 <TR>
@@ -75,7 +76,7 @@
 </TR>
 </TABLE>
 
-<CENTER>
+
 <TABLE>
 <TR>
 <!-- START BLOCK : sorted_list -->
@@ -83,6 +84,7 @@
 <!-- END BLOCK : sorted_list -->
 </TR>
 </TABLE>
+
 
 <p>
 <!-- START BLOCK : node_legend -->

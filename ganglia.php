@@ -53,7 +53,7 @@ function host_alive($host, $cluster)
    $TTL = 60;
 
    if ($host['TN'] and $host['TMAX']) {
-      if ($host['TN'] > $host['TMAX'] * 4)
+      if ($host['TN'] > $host['TMAX'] * 14)
          return FALSE;
          $host_up = FALSE;
    }
@@ -74,6 +74,62 @@ function preamble($ganglia)
    $version[$component] = $ganglia['VERSION'];
 }
 
+function start_list ($parser, $tagname, $attrs)
+{
+   global $metrics, $grid, $self;
+   static $sourcename, $metricname, $hostname;
+
+   switch ($tagname)
+      {
+         case "GANGLIA_XML":
+            preamble($attrs);
+            break;
+
+         case "GRID":
+         case "CLUSTER":
+            # Our grid will be first.
+            if (!$sourcename) $self = $attrs['NAME'];
+
+            $sourcename = $attrs['NAME'];
+            $group_hosts[$sourcename] = $attrs;
+
+            # Identify a grid from a cluster.
+            #$grid[$sourcename][$tagname] = 1;
+            break;
+
+         case "HOST":
+            $hostname = $attrs['NAME'];
+
+            $grid[$sourcename][$hostname] = $attrs;
+            if (host_alive($attrs, $sourcename))
+                $grid[$sourcename][$hostname]['ALIVE'] = 'UP';
+            else
+                $grid[$sourcename][$hostname]['ALIVE'] = 'DOWN';
+
+            # Pseudo metrics - add useful HOST attributes like gmond_started & last_reported to the metrics list:
+            $metrics[$hostname]['gmond_started']['NAME'] = "GMOND_STARTED";
+            $metrics[$hostname]['gmond_started']['VAL'] = $attrs['GMOND_STARTED'];
+            $metrics[$hostname]['gmond_started']['TYPE'] = "timestamp";
+            $metrics[$hostname]['last_reported']['NAME'] = "REPORTED";
+            $metrics[$hostname]['last_reported']['VAL'] = uptime($cluster['LOCALTIME'] - $attrs['REPORTED']);
+            $metrics[$hostname]['last_reported']['TYPE'] = "string";
+            $metrics[$hostname]['ip_address']['NAME'] = "IP";
+            $metrics[$hostname]['ip_address']['VAL'] = $attrs['IP'];
+            $metrics[$hostname]['ip_address']['TYPE'] = "string";
+            $metrics[$hostname]['location']['NAME'] = "LOCATION";
+            $metrics[$hostname]['location']['VAL'] = $attrs['LOCATION'];
+            $metrics[$hostname]['location']['TYPE'] = "string";
+            break;
+
+         case "METRIC":
+            $metricname = $attrs['NAME'];
+            $metrics[$hostname][$metricname] = $attrs;
+            break;
+
+         default:
+            break;
+      }
+}
 
 function start_meta ($parser, $tagname, $attrs)
 {
@@ -116,7 +172,7 @@ function start_meta ($parser, $tagname, $attrs)
 
 function start_cluster ($parser, $tagname, $attrs)
 {
-   global $metrics, $cluster, $self, $grid, $hosts_up, $hosts_down;
+   global $metrics, $cluster, $self, $grid, $hosts_up, $hosts_down, $host_group, $case_sensitive_hostnames;
    static $hostname;
 
    switch ($tagname)
@@ -134,19 +190,28 @@ function start_cluster ($parser, $tagname, $attrs)
             break;
 
          case "HOST":
-            $hostname = $attrs['NAME'];
+			if ($case_sensitive_hostnames == 1) {
+               $hostname = $attrs['NAME'];
+			} else {
+               $hostname = strtolower($attrs['NAME']);
+		    }
+
+            $host_group[$hostname]['NAME'] = $hostname;
+            $host_group[$hostname]['IP'] = $attrs['IP'];
 
             if (host_alive($attrs, $cluster))
                {
 		  isset($cluster['HOSTS_UP']) or $cluster['HOSTS_UP'] = 0;
                   $cluster['HOSTS_UP']++;
                   $hosts_up[$hostname] = $attrs;
+                  $host_group[$hostname]['ALIVE'] = 'UP';
                }
             else
                {
 		  isset($cluster['HOSTS_DOWN']) or $cluster['HOSTS_DOWN'] = 0;
                   $cluster['HOSTS_DOWN']++;
                   $hosts_down[$hostname] = $attrs;
+                  $host_group[$hostname]['ALIVE'] = 'DOWN';
                }
             # Pseudo metrics - add useful HOST attributes like gmond_started & last_reported to the metrics list:
             $metrics[$hostname]['gmond_started']['NAME'] = "GMOND_STARTED";
@@ -208,9 +273,35 @@ function start_cluster_summary ($parser, $tagname, $attrs)
 function start_host ($parser, $tagname, $attrs)
 {
    global $metrics, $cluster, $hosts_up, $hosts_down, $self, $grid;
-   static $metricname;
+   static $metricname, $start, $end;
+   global $hostname, $host_group, $case_sensitive_hostnames;
 
-   switch ($tagname)
+   if (!is_null($attrs['IP'])) {
+	  if ($case_sensitive_hostnames == 1) {
+         $attrs_name = $attrs['NAME'];
+	  } else {
+         $attrs_name = strtolower($attrs['NAME']);
+	  }
+      $host_group[$attrs_name]['NAME'] = $attrs_name;
+      $host_group[$attrs_name]['IP'] = $attrs['IP'];
+      if (host_alive($attrs, $cluster)) {
+	     $host_group[$attrs_name]['ALIVE'] = 'UP';
+	  } else {
+	     $host_group[$attrs_name]['ALIVE'] = 'DOWN';
+	  }
+   }
+   if ($attrs['NAME'] == $hostname){
+      $start = 1;
+   } elseif (is_null($start) and !is_null($attrs['IP'])) {
+      $start = -1;
+   } elseif ($start == 1 and !is_null($attrs['IP'])) {
+      $end = 1;
+   }
+   if ($end == 1) {
+      return;
+   }
+   if (is_null($start) or $start == 1) {
+     switch ($tagname)
       {
          case "GANGLIA_XML":
             preamble($attrs);
@@ -256,7 +347,8 @@ function start_host ($parser, $tagname, $attrs)
 
          default:
             break;
-      }
+     }
+   }
 }
 
 
@@ -310,11 +402,21 @@ function Gmetad ()
          case "node":
          case "host":
             xml_set_element_handler($parser, "start_host", "end_all");
-            $request = "/$clustername/$hostname";
+            #$request = "/$clustername/$hostname";
+            $request = "/$clustername";
+            break;
+         case "list":
+	    if ($hostname) {
+		    xml_set_element_handler($parser, "start_host", "end_all");
+                    $request = "/$clustername";
+	    } else {
+		    xml_set_element_handler($parser, "start_list", "end_all");
+                    $request = "/";
+	    }
             break;
       }
 
-  $fp = fsockopen( $ip, $port, $errno, $errstr, $timeout);
+  $fp = @fsockopen( $ip, $port, $errno, $errstr, $timeout);
    if (!$fp)
       {
          $error = "fsockopen error: $errstr";
