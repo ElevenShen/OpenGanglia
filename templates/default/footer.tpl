@@ -3,8 +3,7 @@
 <CENTER>
 <FONT SIZE="-1" class=footer>
 Ganglia Web Frontend version {webfrontend-version}
-<A HREF="http://ganglia.sourceforge.net/downloads.php?component=ganglia-webfrontend&amp;
-version={webfrontend-version}">Check for Updates.</A><BR>
+<A HREF="https://github.com/ElevenShen/OpenGanglia/">Check for Updates.</A><BR>
 
 Ganglia Web Backend <i>({webbackend-component})</i> version {webbackend-version}
 <A HREF="http://ganglia.sourceforge.net/downloads.php?component={webbackend-component}&amp;
