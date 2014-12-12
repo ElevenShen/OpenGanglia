@@ -1,0 +1,8 @@
+*.tmp
+*.swp
+*.log
+cache/*
+profile/*
+ex_group.list.php
+ex_list.list.php
+ex_users.conf
