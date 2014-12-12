@@ -23,9 +23,9 @@ function ip2net($ip) {
 	$num = $ipa[3];
 	if ($num > 254) return;
 	$network = "$ipa[0].$ipa[1].$ipa[2]";
-	$r['nip'] = $network_list[$network][0].".".$num;
+	$r['nip'] = $ip;
 	$r['network'] = $network_list[$network][2];
-	$r['hostname'] = $ipa[2] . '-' . $ipa[3] . '.' . $network_list[$network][3];
+	$r['hostname'] = "";
 	$r['subnet'] = $network;
 
 	if ($r['network']) {
